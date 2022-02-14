@@ -28,11 +28,19 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
+    avatar: {
+      type: String,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+// compare password
+userSchema.methods.comparePassword = function (password) {
+  return bcrypt.compare(password, this.password);
+};
 
 // hash password
 userSchema.pre("save", async function (next) {

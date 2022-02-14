@@ -4,6 +4,7 @@ const app = express();
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const routes = require("./routes");
 
 // configure local environment variables
 dotenv.config();
@@ -26,6 +27,12 @@ mongoose
 // middlewares
 app.use(express.json());
 app.use(cors());
+
+// uploads
+app.use("/uploads", express.static("uploads"));
+
+// routes
+app.use("/api", routes);
 
 // port
 const port = process.env.PORT || 5000;

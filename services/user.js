@@ -58,9 +58,11 @@ exports.getAllUsers = async (query) => {
   const sortBy = sort ? sort : "createdAt";
   const sortOrder = order ? order : "desc";
 
-  // search
+  // search by username
   const { search } = query;
-  const searchQuery = search ? { $text: { $search: search } } : {};
+  const searchQuery = search
+    ? { username: { $regex: search, $options: "i" } }
+    : {};
 
   try {
     const users = await User.find(searchQuery)
@@ -101,6 +103,31 @@ exports.verifyUser = async (verificationToken) => {
     const user = await User.findOne({ verificationToken });
     user.verified = true;
     user.verificationToken = null;
+    await user.save();
+    return user;
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+
+// delete avatar
+exports.deleteAvatar = async (userId) => {
+  try {
+    // TODO delete avatar from storage
+    const user = await User.findById(userId);
+    user.avatar = null;
+    await user.save();
+    return user;
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+
+// change password
+exports.changePassword = async (userId, password) => {
+  try {
+    const user = await User.findById(userId);
+    user.password = await bcrypt.hash(password, 10);
     await user.save();
     return user;
   } catch (err) {
