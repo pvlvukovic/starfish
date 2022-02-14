@@ -98,4 +98,4 @@ router.get("/me", async (req, res) => {
       message: err.message,
     });
   }
-}
+});
