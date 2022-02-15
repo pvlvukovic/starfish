@@ -32,6 +32,11 @@ app.use("/uploads", express.static("uploads"));
 // routes
 app.use("/api", routes);
 
+// default route, just for testing
+app.get("/", (req, res) => {
+  res.send("Welcome to Starfish!");
+});
+
 // port
 const port = process.env.PORT || 5000;
 
