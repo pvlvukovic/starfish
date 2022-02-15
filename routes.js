@@ -12,3 +12,6 @@ router.use("/auth", authController);
 router.use("/users", userController);
 router.use("/posts/:postId/comments", commentController);
 router.use("/posts", postController);
+
+// exports
+module.exports = router;

@@ -102,7 +102,6 @@ exports.verifyUser = async (verificationToken) => {
   try {
     const user = await User.findOne({ verificationToken });
     user.verified = true;
-    user.verificationToken = null;
     await user.save();
     return user;
   } catch (err) {

@@ -1,9 +1,9 @@
 // auth service
 
 // imports
-const User = require("../models/user");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const dotenv = require("dotenv");
+dotenv.config();
 
 // generate auth token
 exports.generateAuthToken = (userId) => {

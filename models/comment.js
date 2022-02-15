@@ -23,8 +23,10 @@ const commentSchema = new mongoose.Schema(
       ref: "Post",
     },
     likes: [
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
     ],
   },
   {

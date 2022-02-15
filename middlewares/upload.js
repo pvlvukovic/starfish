@@ -19,18 +19,19 @@ const storage = multer.diskStorage({
 });
 
 // create upload middleware
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: 1000000,
-  },
-  fileFilter: (req, file, cb) => {
-    if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-      return cb(new Error("Please upload an image"));
-    }
-    cb(undefined, true);
-  },
-});
+const upload = () =>
+  multer({
+    storage,
+    limits: {
+      fileSize: 1000000,
+    },
+    fileFilter: (req, file, cb) => {
+      if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+        return cb(new Error("Please upload an image"));
+      }
+      cb(undefined, true);
+    },
+  });
 
 // export upload middleware
 module.exports = upload;

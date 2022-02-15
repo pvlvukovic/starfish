@@ -19,10 +19,12 @@ const userService = require("../services/user");
 router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
+    const verificationToken = authService.generateVerificationToken();
     const user = await userService.createUser({
       username,
       email,
       password,
+      verificationToken,
     });
     const token = authService.generateAuthToken(user._id);
     res.status(201).json({
@@ -104,7 +106,11 @@ router.post("/reset", async (req, res) => {
     const { token, password } = req.body;
     const user = await userService.getUserByVerificationToken(token);
     user.password = password;
-    user.verificationToken = null;
+
+    // generate new verification token
+    const newToken = authService.generateVerificationToken(user._id);
+    user.verificationToken = newToken;
+
     await user.save();
     res.status(200).json({
       user,
