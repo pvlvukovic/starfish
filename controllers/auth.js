@@ -5,6 +5,8 @@ const express = require("express");
 const router = express.Router();
 const authService = require("../services/auth");
 const userService = require("../services/user");
+const uploadMiddleware = require("../middlewares/upload");
+const s3 = require("../utils/s3");
 
 // router has
 // POST /auth/login
@@ -16,27 +18,41 @@ const userService = require("../services/user");
 // @route   POST api/auth/register
 // @desc    Register user
 // @access  Public
-router.post("/register", async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
-    const verificationToken = authService.generateVerificationToken();
-    const user = await userService.createUser({
-      username,
-      email,
-      password,
-      verificationToken,
-    });
-    const token = authService.generateAuthToken(user._id);
-    res.status(201).json({
-      user,
-      token,
-    });
-  } catch (err) {
-    res.status(400).json({
-      message: err.message,
-    });
+router.post(
+  "/register",
+  uploadMiddleware.single("avatar"),
+  async (req, res) => {
+    try {
+      // get avatar from req.file
+      const avatar = req.file;
+
+      // if avatar is not null, attach avatar to req.body
+      if (avatar) {
+        // upload avatar to s3
+        const uploaded = await s3(avatar);
+
+        req.body.avatar = uploaded.Location;
+      }
+
+      console.log(req.body);
+
+      const verificationToken = authService.generateVerificationToken();
+      const user = await userService.createUser({
+        ...req.body,
+        verificationToken,
+      });
+      const token = authService.generateAuthToken(user._id);
+      res.status(201).json({
+        user,
+        token,
+      });
+    } catch (err) {
+      res.status(400).json({
+        message: err.message,
+      });
+    }
   }
-});
+);
 
 // @route   POST api/auth/login
 // @desc    Login user

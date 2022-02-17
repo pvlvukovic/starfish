@@ -18,24 +18,29 @@ const uploadMiddleware = require("../middlewares/upload");
 // @route   POST api/posts
 // @desc    Create post
 // @access  Private
-router.post("/", authMiddleware, uploadMiddleware, async (req, res) => {
-  try {
-    // get media from req.file
-    const media = req.file;
+router.post(
+  "/",
+  authMiddleware,
+  uploadMiddleware.single("media"),
+  async (req, res) => {
+    try {
+      // get media from req.file
+      const media = req.file;
 
-    // if media is not null, attach media to req.body
-    if (media) {
-      req.body.media = media.path;
+      // if media is not null, attach media to req.body
+      if (media) {
+        req.body.media = media.path;
+      }
+
+      const post = await postService.createPost(req.body);
+      res.status(201).json(post);
+    } catch (err) {
+      res.status(400).json({
+        message: err.message,
+      });
     }
-
-    const post = await postService.createPost(req.body);
-    res.status(201).json(post);
-  } catch (err) {
-    res.status(400).json({
-      message: err.message,
-    });
   }
-});
+);
 
 // @route   GET api/posts
 // @desc    Get all posts
@@ -82,7 +87,7 @@ router.get("/me", authMiddleware, async (req, res) => {
 // @route   PUT api/posts/:id
 // @desc    Update post
 // @access  Private
-router.put("/:id", authMiddleware, uploadMiddleware, async (req, res) => {
+router.put("/:id", authMiddleware, async (req, res) => {
   try {
     // get media from req.file
     const media = req.file;

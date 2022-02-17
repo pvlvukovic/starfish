@@ -1,37 +1,41 @@
 // upload middleware
+// uses multer to upload files to s3
+// use multer-s3
 
 // imports
 const multer = require("multer");
-const path = require("path");
+
+// file mime types
+// allow images and videos
+const fileMimeTypes = [
+  "image/jpg",
+  "image/JPG",
+  "image/jpeg",
+  "image/JPEG",
+  "image/png",
+  "image/PNG",
+  "video/mp4",
+  "video/MP4",
+  "video/mov",
+  "video/MOV",
+  "video/avi",
+  "video/AVI",
+];
 
 // configure multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // set destination
-    cb(null, "./uploads/");
+const upload = multer({
+  fileFilter: (req, file, cb) => {
+    // allow only images and videos
+    if (fileMimeTypes.includes(file.mimetype)) {
+      cb(null, true);
+    }
+    cb(null, false);
   },
-  filename: (req, file, cb) => {
-    // get file extension
-    const ext = path.extname(file.originalname);
-    // generate random file name
-    cb(null, Date.now() + ext);
+  limits: {
+    fileSize: 1024 * 1024 * 5, // 5MB
   },
+  storage: multer.memoryStorage(),
 });
 
-// create upload middleware
-const upload = () =>
-  multer({
-    storage,
-    limits: {
-      fileSize: 1000000,
-    },
-    fileFilter: (req, file, cb) => {
-      if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-        return cb(new Error("Please upload an image"));
-      }
-      cb(undefined, true);
-    },
-  });
-
-// export upload middleware
+// export
 module.exports = upload;

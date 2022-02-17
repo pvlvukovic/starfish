@@ -20,28 +20,38 @@ const uploadMiddleware = require("../middlewares/upload");
 // @route   POST api/users
 // @desc    Register user
 // @access  Private
-router.post("/", authMiddleware, uploadMiddleware, async (req, res) => {
-  try {
-    // get avatar from req.file
-    const avatar = req.file;
+router.post(
+  "/",
+  authMiddleware,
+  uploadMiddleware.single("avatar"),
+  async (req, res) => {
+    try {
+      // get avatar from req.file
+      const avatar = req.file;
 
-    // if avatar is not null, attach avatar to req.body
-    if (avatar) {
-      req.body.avatar = avatar.path;
+      // if avatar is not null, attach avatar to req.body
+      if (avatar) {
+        req.body.avatar = avatar.location;
+      }
+
+      const verificationToken = authService.generateVerificationToken();
+      const user = await userService.createUser({
+        ...req.body,
+        verificationToken,
+      });
+
+      const token = authService.generateAuthToken(user._id);
+      res.status(201).json({
+        user,
+        token,
+      });
+    } catch (err) {
+      res.status(400).json({
+        message: err.message,
+      });
     }
-
-    const user = await userService.createUser(req.body);
-    const token = authService.generateAuthToken(user._id);
-    res.status(201).json({
-      user,
-      token,
-    });
-  } catch (err) {
-    res.status(400).json({
-      message: err.message,
-    });
   }
-});
+);
 
 // @route   GET api/users
 // @desc    Get all users
@@ -76,32 +86,37 @@ router.get("/:id", authMiddleware, async (req, res) => {
 // @route   PUT api/users/:id
 // @desc    Update user by id
 // @access  Private
-router.put("/:id", authMiddleware, uploadMiddleware, async (req, res) => {
-  try {
-    // if deleteAvatar is true, delete avatar
-    if (req.body.deleteAvatar) {
-      await userService.deleteAvatar(req.params.id);
+router.put(
+  "/:id",
+  authMiddleware,
+  uploadMiddleware.single("avatar"),
+  async (req, res) => {
+    try {
+      // if deleteAvatar is true, delete avatar
+      if (req.body.deleteAvatar) {
+        await userService.deleteAvatar(req.params.id);
+      }
+
+      // get avatar from req.file
+      const avatar = req.file;
+
+      // if avatar is not null, atach avatar to req.body and delete previous avatar
+      if (avatar) {
+        req.body.avatar = avatar.path;
+        await userService.deleteAvatar(req.params.id);
+      }
+
+      const user = await userService.updateUser(req.params.id, req.body);
+      res.status(200).json({
+        user,
+      });
+    } catch (err) {
+      res.status(400).json({
+        message: err.message,
+      });
     }
-
-    // get avatar from req.file
-    const avatar = req.file;
-
-    // if avatar is not null, atach avatar to req.body and delete previous avatar
-    if (avatar) {
-      req.body.avatar = avatar.path;
-      await userService.deleteAvatar(req.params.id);
-    }
-
-    const user = await userService.updateUser(req.params.id, req.body);
-    res.status(200).json({
-      user,
-    });
-  } catch (err) {
-    res.status(400).json({
-      message: err.message,
-    });
   }
-});
+);
 
 // @route   DELETE api/users/:id
 // @desc    Delete user by id
