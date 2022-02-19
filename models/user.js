@@ -25,8 +25,7 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
     verificationToken: {
-      type: String,
-      unique: true,
+      type: Number,
     },
     avatar: {
       type: String,
@@ -39,15 +38,10 @@ const userSchema = new mongoose.Schema(
 
 // compare password
 userSchema.methods.comparePassword = function (password) {
-  return bcrypt.compare(password, this.password);
+  console.log(password, this.password);
+  let isMatch = bcrypt.compareSync(password, this.password);
+  return isMatch;
 };
-
-// hash password
-userSchema.pre("save", async function (next) {
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
 
 // export
 module.exports = mongoose.model("User", userSchema);

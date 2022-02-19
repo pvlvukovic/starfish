@@ -4,6 +4,7 @@
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const authService = require("./auth");
 
 // create
 exports.createUser = async (user) => {
@@ -29,16 +30,6 @@ exports.getUserById = async (userId) => {
 exports.getUserByEmail = async (email) => {
   try {
     const user = await User.findOne({ email });
-    return user;
-  } catch (err) {
-    throw new Error(err.message);
-  }
-};
-
-// get by verification token
-exports.getUserByVerificationToken = async (verificationToken) => {
-  try {
-    const user = await User.findOne({ verificationToken });
     return user;
   } catch (err) {
     throw new Error(err.message);
@@ -98,12 +89,14 @@ exports.deleteUser = async (userId) => {
 };
 
 // verify
-exports.verifyUser = async (verificationToken) => {
+exports.verifyUser = async (email, verificationToken) => {
   try {
-    const user = await User.findOne({ verificationToken });
+    const user = await User.findOne({ email, verificationToken });
     user.verified = true;
     await user.save();
-    return user;
+    // generate auth token
+    const token = authService.generateAuthToken(user._id);
+    return { user, token };
   } catch (err) {
     throw new Error(err.message);
   }

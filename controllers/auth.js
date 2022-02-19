@@ -6,7 +6,14 @@ const router = express.Router();
 const authService = require("../services/auth");
 const userService = require("../services/user");
 const uploadMiddleware = require("../middlewares/upload");
+const authMiddleware = require("../middlewares/auth");
 const s3 = require("../utils/s3");
+const {
+  sendEmail,
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+} = require("../utils/email");
+const bcrypt = require("bcrypt");
 
 // router has
 // POST /auth/login
@@ -34,17 +41,23 @@ router.post(
         req.body.avatar = uploaded.Location;
       }
 
-      console.log(req.body);
-
       const verificationToken = authService.generateVerificationToken();
+
+      // hash password
+      const password = await bcrypt.hash(req.body.password, 10);
+
       const user = await userService.createUser({
         ...req.body,
+        password,
         verificationToken,
       });
       const token = authService.generateAuthToken(user._id);
+
+      // send verification email
+      sendVerificationEmail(user.email, verificationToken);
+
       res.status(201).json({
-        user,
-        token,
+        message: "User created successfully",
       });
     } catch (err) {
       res.status(400).json({
@@ -61,10 +74,27 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await userService.getUserByEmail(email);
+
+    // check if user exists
+    if (!user) {
+      return res.status(400).json({
+        message: "User does not exist",
+      });
+    }
+
+    // check if password is correct
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       throw new Error("Incorrect password");
     }
+
+    // check if user is verified
+    if (!user.verified) {
+      return res.status(401).json({
+        message: "Please verify your email first",
+      });
+    }
+
     const token = authService.generateAuthToken(user._id);
     res.status(200).json({
       user,
@@ -82,10 +112,10 @@ router.post("/login", async (req, res) => {
 // @access  Public
 router.post("/verify", async (req, res) => {
   try {
-    const { token } = req.body;
-    const user = await userService.verifyUser(token);
+    const { email, token } = req.body;
+    const data = await userService.verifyUser(email, token);
     res.status(200).json({
-      user,
+      ...data,
     });
   } catch (err) {
     res.status(400).json({
@@ -104,8 +134,12 @@ router.post("/forgot", async (req, res) => {
     const token = authService.generateVerificationToken(user._id);
     user.verificationToken = token;
     await user.save();
+
+    // send password reset email
+    await sendPasswordResetEmail(user.email, token);
+
     res.status(200).json({
-      user,
+      message: "Password reset email sent",
     });
   } catch (err) {
     res.status(400).json({
@@ -116,20 +150,17 @@ router.post("/forgot", async (req, res) => {
 
 // @route   POST api/auth/reset
 // @desc    Reset password
-// @access  Public
-router.post("/reset", async (req, res) => {
+// @access  Private
+router.post("/reset", authMiddleware, async (req, res) => {
+  // get user from req.user
+  const { user } = req;
+  console.log(user);
+
   try {
-    const { token, password } = req.body;
-    const user = await userService.getUserByVerificationToken(token);
-    user.password = password;
-
-    // generate new verification token
-    const newToken = authService.generateVerificationToken(user._id);
-    user.verificationToken = newToken;
-
-    await user.save();
+    // change password
+    await userService.changePassword(user, req.body.password);
     res.status(200).json({
-      user,
+      message: "Password changed successfully",
     });
   } catch (err) {
     res.status(400).json({

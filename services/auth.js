@@ -13,10 +13,7 @@ exports.generateAuthToken = (userId) => {
 
 // generate verification token
 exports.generateVerificationToken = () => {
-  // verification token is unique and random string of 32 characters
-  // TODO: use guid
-  const token =
-    Math.random().toString(36).substring(2, 15) +
-    Math.random().toString(36).substring(2, 15);
+  // verificaiton token is a random 4 digit number
+  const token = Math.floor(1000 + Math.random() * 9000);
   return token;
 };
