@@ -92,6 +92,12 @@ exports.deleteUser = async (userId) => {
 exports.verifyUser = async (email, verificationToken) => {
   try {
     const user = await User.findOne({ email, verificationToken });
+
+    // if user is not found or verificationToken is not valid
+    if (!user || user.verificationToken !== verificationToken) {
+      throw new Error("User not found or invalid verification token");
+    }
+
     user.verified = true;
     await user.save();
     // generate auth token

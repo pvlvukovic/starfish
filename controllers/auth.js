@@ -14,6 +14,7 @@ const {
   sendPasswordResetEmail,
 } = require("../utils/email");
 const bcrypt = require("bcrypt");
+const authValidator = require("../validators/auth");
 
 // router has
 // POST /auth/login
@@ -28,6 +29,7 @@ const bcrypt = require("bcrypt");
 router.post(
   "/register",
   uploadMiddleware.single("avatar"),
+  authValidator.register,
   async (req, res) => {
     try {
       // get avatar from req.file
@@ -70,7 +72,7 @@ router.post(
 // @route   POST api/auth/login
 // @desc    Login user
 // @access  Public
-router.post("/login", async (req, res) => {
+router.post("/login", authValidator.login, async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await userService.getUserByEmail(email);
@@ -110,7 +112,7 @@ router.post("/login", async (req, res) => {
 // @route   POST api/auth/verify
 // @desc    Verify user
 // @access  Public
-router.post("/verify", async (req, res) => {
+router.post("/verify", authValidator.verify, async (req, res) => {
   try {
     const { email, token } = req.body;
     const data = await userService.verifyUser(email, token);
@@ -154,7 +156,6 @@ router.post("/forgot", async (req, res) => {
 router.post("/reset", authMiddleware, async (req, res) => {
   // get user from req.user
   const { user } = req;
-  console.log(user);
 
   try {
     // change password

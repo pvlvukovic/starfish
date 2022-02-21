@@ -9,49 +9,11 @@ const authMiddleware = require("../middlewares/auth");
 const uploadMiddleware = require("../middlewares/upload");
 
 // router has
-// POST /users
 // GET /users
 // GET /users/:id
 // PUT /users/:id
 // DELETE /users/:id
-// GET /users/me
 // PUT /users/:id/password
-
-// @route   POST api/users
-// @desc    Register user
-// @access  Private
-router.post(
-  "/",
-  authMiddleware,
-  uploadMiddleware.single("avatar"),
-  async (req, res) => {
-    try {
-      // get avatar from req.file
-      const avatar = req.file;
-
-      // if avatar is not null, attach avatar to req.body
-      if (avatar) {
-        req.body.avatar = avatar.location;
-      }
-
-      const verificationToken = authService.generateVerificationToken();
-      const user = await userService.createUser({
-        ...req.body,
-        verificationToken,
-      });
-
-      const token = authService.generateAuthToken(user._id);
-      res.status(201).json({
-        user,
-        token,
-      });
-    } catch (err) {
-      res.status(400).json({
-        message: err.message,
-      });
-    }
-  }
-);
 
 // @route   GET api/users
 // @desc    Get all users
@@ -73,6 +35,13 @@ router.get("/", authMiddleware, async (req, res) => {
 router.get("/:id", authMiddleware, async (req, res) => {
   try {
     const user = await userService.getUserById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
     res.status(200).json({
       user,
     });
@@ -126,22 +95,6 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     // delete avatar
     await userService.deleteAvatar(req.params.id);
     const user = await userService.deleteUser(req.params.id);
-    res.status(200).json({
-      user,
-    });
-  } catch (err) {
-    res.status(400).json({
-      message: err.message,
-    });
-  }
-});
-
-// @route   GET api/users/me
-// @desc    Get current user
-// @access  Private
-router.get("/me", authMiddleware, async (req, res) => {
-  try {
-    const user = await userService.getUserById(req.user._id);
     res.status(200).json({
       user,
     });
