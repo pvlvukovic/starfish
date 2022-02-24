@@ -65,6 +65,11 @@ const validatedPrototype = {
       this.error += `${this.name} must be a number. `;
     }
   },
+  hasNumberOfDigits(number) {
+    if (this.value && this.value.toString().length !== number) {
+      this.error += `${this.name} must have ${number} digits. `;
+    }
+  },
   hasNoSpecial() {
     if (
       this.value &&

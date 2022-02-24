@@ -82,7 +82,7 @@ exports.verify = async (req, res, next) => {
   const token = new Validated(req.body.token, "token");
   token.isRequired();
   token.isNumber();
-  token.isLength(4);
+  token.hasNumberOfDigits(4);
 
   // combine errors into one object
   const errors = {
