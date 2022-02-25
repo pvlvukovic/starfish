@@ -170,5 +170,29 @@ router.post("/reset", authMiddleware, async (req, res) => {
   }
 });
 
+// @route   POST api/auth/resend
+// @desc    Resend verification email
+// @access  Public
+router.post("/resend", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await userService.getUserByEmail(email);
+    const token = authService.generateVerificationToken(user._id);
+    user.verificationToken = token;
+    await user.save();
+
+    // send verification email
+    await sendVerificationEmail(user.email, token);
+
+    res.status(200).json({
+      message: "Verification email sent",
+    });
+  } catch (err) {
+    res.status(400).json({
+      message: err.message,
+    });
+  }
+});
+
 // exports
 module.exports = router;
