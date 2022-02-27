@@ -7,6 +7,8 @@ const authService = require("../services/auth");
 const userService = require("../services/user");
 const authMiddleware = require("../middlewares/auth");
 const uploadMiddleware = require("../middlewares/upload");
+const userValidator = require("../validators/user");
+const s3 = require("../utils/s3");
 
 // router has
 // GET /users
@@ -21,7 +23,9 @@ const uploadMiddleware = require("../middlewares/upload");
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const users = await userService.getAllUsers(req.query);
-    res.status(200).json(users);
+    res.status(200).json({
+      data: users,
+    });
   } catch (err) {
     res.status(400).json({
       message: err.message,
@@ -43,7 +47,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
     }
 
     res.status(200).json({
-      user,
+      data: user,
     });
   } catch (err) {
     res.status(400).json({
@@ -52,6 +56,31 @@ router.get("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// @route   PATCH api/users/password
+// @desc    Update user password
+// @access  Private
+router.patch(
+  "/password",
+  authMiddleware,
+  userValidator.password,
+  async (req, res) => {
+    try {
+      const user = await userService.changePassword(
+        req.user.id,
+        req.body.password,
+        req.body.oldPassword
+      );
+      res.status(200).json({
+        data: user,
+      });
+    } catch (err) {
+      res.status(400).json({
+        message: err.message,
+      });
+    }
+  }
+);
+
 // @route   PUT api/users/:id
 // @desc    Update user by id
 // @access  Private
@@ -59,6 +88,7 @@ router.put(
   "/:id",
   authMiddleware,
   uploadMiddleware.single("avatar"),
+  userValidator.update,
   async (req, res) => {
     try {
       // if deleteAvatar is true, delete avatar
@@ -71,13 +101,15 @@ router.put(
 
       // if avatar is not null, atach avatar to req.body and delete previous avatar
       if (avatar) {
-        req.body.avatar = avatar.path;
-        await userService.deleteAvatar(req.params.id);
+        // upload avatar to s3
+        const uploaded = await s3(avatar);
+
+        req.body.avatar = uploaded.Location;
       }
 
       const user = await userService.updateUser(req.params.id, req.body);
       res.status(200).json({
-        user,
+        data: user,
       });
     } catch (err) {
       res.status(400).json({
@@ -96,23 +128,7 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     await userService.deleteAvatar(req.params.id);
     const user = await userService.deleteUser(req.params.id);
     res.status(200).json({
-      user,
-    });
-  } catch (err) {
-    res.status(400).json({
-      message: err.message,
-    });
-  }
-});
-
-// @route   PUT api/users/:id/password
-// @desc    Update user password
-// @access  Private
-router.put("/:id/password", authMiddleware, async (req, res) => {
-  try {
-    const user = await userService.updatePassword(req.params.id, req.body);
-    res.status(200).json({
-      user,
+      data: user,
     });
   } catch (err) {
     res.status(400).json({

@@ -49,18 +49,54 @@ exports.getAllUsers = async (query) => {
   const sortBy = sort ? sort : "createdAt";
   const sortOrder = order ? order : "desc";
 
-  // search by username
+  // search by username or email
   const { search } = query;
   const searchQuery = search
-    ? { username: { $regex: search, $options: "i" } }
+    ? {
+        $or: [
+          { username: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+        ],
+      }
     : {};
 
+  // verified filter - must be true
+  const verifiedQuery = { verified: true };
+
+  // get total
+  let total = 0;
   try {
-    const users = await User.find(searchQuery)
+    total = await User.countDocuments({
+      ...searchQuery,
+      ...verifiedQuery,
+    });
+  } catch (err) {
+    throw new Error(err.message);
+  }
+
+  // init pagination object
+  const pagination = {
+    page: pageNumber,
+    limit: limitNumber,
+    total,
+    pages: Math.ceil(total / limitNumber),
+    prev: pageNumber !== 1 ? pageNumber - 1 : null,
+    next: pageNumber !== Math.ceil(total / limitNumber) ? pageNumber + 1 : null,
+  };
+
+  // exclude password and verificationToken
+  const select = { password: 0, verificationToken: 0 };
+
+  try {
+    const users = await User.find({
+      ...searchQuery,
+      ...verifiedQuery,
+    })
+      .select(select)
       .skip(offset)
       .limit(limitNumber)
       .sort({ [sortBy]: sortOrder });
-    return users;
+    return { users, pagination };
   } catch (err) {
     throw new Error(err.message);
   }
@@ -68,6 +104,15 @@ exports.getAllUsers = async (query) => {
 
 // update
 exports.updateUser = async (userId, user) => {
+  // disable password update
+  delete user.password;
+
+  // disable verificationToken update
+  delete user.verificationToken;
+
+  // disable email update
+  delete user.email;
+
   try {
     const updatedUser = await User.findByIdAndUpdate(userId, user, {
       new: true,
@@ -122,9 +167,18 @@ exports.deleteAvatar = async (userId) => {
 };
 
 // change password
-exports.changePassword = async (userId, password) => {
+exports.changePassword = async (userId, password, oldPassword) => {
   try {
     const user = await User.findById(userId);
+
+    // check old password
+    const isValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isValid) {
+      throw new Error(
+        "Old password is not valid. Please enter your old password correctly."
+      );
+    }
+
     user.password = await bcrypt.hash(password, 10);
     await user.save();
     return user;
