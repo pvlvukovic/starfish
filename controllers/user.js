@@ -57,18 +57,17 @@ router.get("/:id", authMiddleware, async (req, res) => {
 });
 
 // @route   PATCH api/users/password
-// @desc    Update user password
+// @desc    Reset user password
 // @access  Private
 router.patch(
   "/password",
   authMiddleware,
-  userValidator.password,
+  userValidator.reset,
   async (req, res) => {
     try {
-      const user = await userService.changePassword(
+      const user = await userService.resetPassword(
         req.user.id,
-        req.body.password,
-        req.body.oldPassword
+        req.body.password
       );
       res.status(200).json({
         data: user,
@@ -136,6 +135,8 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     });
   }
 });
+
+// TODO - change password
 
 // exports
 module.exports = router;
