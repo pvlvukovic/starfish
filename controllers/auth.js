@@ -129,7 +129,7 @@ router.post("/verify", authValidator.verify, async (req, res) => {
 // @route   POST api/auth/forgot
 // @desc    Forgot password
 // @access  Public
-router.post("/forgot", async (req, res) => {
+router.post("/forgot", authValidator.forgotPassword, async (req, res) => {
   try {
     const { email } = req.body;
     const user = await userService.getUserByEmail(email);
@@ -153,22 +153,27 @@ router.post("/forgot", async (req, res) => {
 // @route   POST api/auth/reset
 // @desc    Reset password
 // @access  Private
-router.post("/reset", authMiddleware, async (req, res) => {
-  // get user from req.user
-  const { user } = req;
+router.post(
+  "/reset",
+  authMiddleware,
+  authValidator.resetPassword,
+  async (req, res) => {
+    // get user from req.user
+    const { user } = req;
 
-  try {
-    // change password
-    await userService.changePassword(user, req.body.password);
-    res.status(200).json({
-      message: "Password changed successfully",
-    });
-  } catch (err) {
-    res.status(400).json({
-      message: err.message,
-    });
+    try {
+      // change password
+      await userService.resetPassword(user, req.body.password);
+      res.status(200).json({
+        message: "Password changed successfully",
+      });
+    } catch (err) {
+      res.status(400).json({
+        message: err.message,
+      });
+    }
   }
-});
+);
 
 // @route   POST api/auth/resend
 // @desc    Resend verification email

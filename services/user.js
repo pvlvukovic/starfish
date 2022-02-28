@@ -186,3 +186,16 @@ exports.changePassword = async (userId, password, oldPassword) => {
     throw new Error(err.message);
   }
 };
+
+// change password
+exports.resetPassword = async (userId, password, oldPassword) => {
+  try {
+    const user = await User.findById(userId);
+
+    user.password = await bcrypt.hash(password, 10);
+    await user.save();
+    return user;
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
