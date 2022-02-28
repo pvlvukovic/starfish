@@ -57,3 +57,34 @@ exports.password = async (req, res, next) => {
   // check for errors
   check(errors, req, res, next);
 };
+
+// reset
+exports.reset = async (req, res, next) => {
+  // validate password
+  const password = new Validated(req.body.password, "password");
+  password.isRequired();
+  password.min(8);
+  password.max(32);
+  password.hasUppercase();
+  password.hasLowercase();
+  password.hasNumber();
+
+  // validate password confirmation
+  const passwordConfirm = new Validated(
+    req.body.passwordConfirm,
+    "passwordConfirm",
+    User
+  );
+  passwordConfirm.isRequired();
+  passwordConfirm.isEqual(req.body.password);
+
+  // combine errors into one object
+  const errors = {
+    oldPassword: oldPassword.error,
+    password: password.error,
+    passwordConfirm: passwordConfirm.error,
+  };
+
+  // check for errors
+  check(errors, req, res, next);
+};
