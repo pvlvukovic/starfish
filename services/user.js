@@ -113,6 +113,15 @@ exports.updateUser = async (userId, user) => {
   // disable email update
   delete user.email;
 
+  // check if username is taken, but not the current user
+  const isUsernameTaken = await User.findOne({
+    username: user.username,
+    _id: { $ne: userId },
+  });
+  if (isUsernameTaken) {
+    throw new Error("Username is taken");
+  }
+
   try {
     const updatedUser = await User.findByIdAndUpdate(userId, user, {
       new: true,
