@@ -60,10 +60,6 @@ exports.password = async (req, res, next) => {
 
 // reset
 exports.reset = async (req, res, next) => {
-  // validate old password
-  const oldPassword = new Validated(req.body.oldPassword, "oldPassword");
-  oldPassword.isRequired();
-
   // validate password
   const password = new Validated(req.body.password, "password");
   password.isRequired();
@@ -84,7 +80,6 @@ exports.reset = async (req, res, next) => {
 
   // combine errors into one object
   const errors = {
-    oldPassword: oldPassword.error,
     password: password.error,
     passwordConfirm: passwordConfirm.error,
   };
