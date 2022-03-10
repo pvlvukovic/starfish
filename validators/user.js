@@ -60,6 +60,10 @@ exports.password = async (req, res, next) => {
 
 // reset
 exports.reset = async (req, res, next) => {
+  // validate old password
+  const oldPassword = new Validated(req.body.oldPassword, "oldPassword");
+  oldPassword.isRequired();
+
   // validate password
   const password = new Validated(req.body.password, "password");
   password.isRequired();
