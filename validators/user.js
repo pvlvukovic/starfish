@@ -8,7 +8,7 @@ const { Validated, check } = require("./index");
 exports.update = async (req, res, next) => {
   // validate username
   const username = new Validated(req.body.username, "username");
-  username.isRequired();
+  // username.isRequired();
   // await username.isUnique(User);
   username.min(6);
   username.max(20);
