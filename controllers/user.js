@@ -23,9 +23,7 @@ const s3 = require("../utils/s3");
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const users = await userService.getAllUsers(req.query);
-    res.status(200).json({
-      data: users,
-    });
+    res.status(200).json(user);
   } catch (err) {
     res.status(400).json({
       message: err.message,
@@ -46,9 +44,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
       });
     }
 
-    res.status(200).json({
-      data: user,
-    });
+    res.status(200).json(user);
   } catch (err) {
     res.status(400).json({
       message: err.message,
@@ -69,9 +65,7 @@ router.patch(
         req.user.id,
         req.body.password
       );
-      res.status(200).json({
-        data: user,
-      });
+      res.status(200).json(user);
     } catch (err) {
       res.status(400).json({
         message: err.message,
@@ -107,9 +101,7 @@ router.put(
       }
 
       const user = await userService.updateUser(req.params.id, req.body);
-      res.status(200).json({
-        data: user,
-      });
+      res.status(200).json(user);
     } catch (err) {
       res.status(400).json({
         message: err.message,
@@ -126,17 +118,13 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     // delete avatar
     await userService.deleteAvatar(req.params.id);
     const user = await userService.deleteUser(req.params.id);
-    res.status(200).json({
-      data: user,
-    });
+    res.status(200).json(user);
   } catch (err) {
     res.status(400).json({
       message: err.message,
     });
   }
 });
-
-// TODO - change password
 
 // exports
 module.exports = router;
