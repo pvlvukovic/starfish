@@ -62,10 +62,10 @@ router.get("/:id", authMiddleware, async (req, res) => {
 router.patch(
   "/password",
   authMiddleware,
-  userValidator.reset,
+  userValidator.changePassword,
   async (req, res) => {
     try {
-      const user = await userService.resetPassword(
+      const user = await userService.changePassword(
         req.user.id,
         req.body.password
       );

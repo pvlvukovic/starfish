@@ -58,8 +58,12 @@ exports.password = async (req, res, next) => {
   check(errors, req, res, next);
 };
 
-// reset
-exports.reset = async (req, res, next) => {
+// change password
+exports.changePassword = async (req, res, next) => {
+  // old password
+  const oldPassword = new Validated(req.body.oldPassword, "oldPassword");
+  oldPassword.isRequired();
+
   // validate password
   const password = new Validated(req.body.password, "password");
   password.isRequired();
