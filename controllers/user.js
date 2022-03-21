@@ -63,7 +63,8 @@ router.patch(
     try {
       const user = await userService.changePassword(
         req.user.id,
-        req.body.password
+        req.body.password,
+        req.body.oldPassword
       );
       res.status(200).json(user);
     } catch (err) {
