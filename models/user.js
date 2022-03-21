@@ -33,6 +33,13 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    // don't add password to the response
+    toJSON: {
+      transform: (doc, ret) => {
+        delete ret.password;
+        return ret;
+      },
+    },
   }
 );
 
