@@ -23,7 +23,7 @@ const s3 = require("../utils/s3");
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const users = await userService.getAllUsers(req.query);
-    res.status(200).json(user);
+    res.status(200).json(users);
   } catch (err) {
     res.status(400).json({
       message: err.message,
