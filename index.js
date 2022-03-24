@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const routes = require("./routes");
+const path = require("path");
 
 // configure local environment variables
 dotenv.config();
@@ -34,9 +35,10 @@ app.use("/uploads", express.static("uploads"));
 // routes
 app.use("/api", routes);
 
-// default route, just for testing
+// serve client folder
+app.use(express.static(path.join(__dirname, "client")));
 app.get("/", (req, res) => {
-  res.send("Welcome to Starfish!");
+  res.sendFile(path.join(__dirname, "client", "index.html"));
 });
 
 // port

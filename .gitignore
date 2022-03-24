@@ -2,3 +2,4 @@
 .env
 .env.production
 /uploads
+build-client.sh

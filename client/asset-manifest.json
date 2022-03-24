@@ -1,0 +1,11 @@
+{
+  "files": {
+    "main.js": "/static/js/main.fecac5af.js",
+    "static/media/logo.png": "/static/media/logo.aa07bbe997a2c7c1eeaf.png",
+    "index.html": "/index.html",
+    "main.fecac5af.js.map": "/static/js/main.fecac5af.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.fecac5af.js"
+  ]
+}
