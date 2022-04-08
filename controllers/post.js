@@ -203,5 +203,51 @@ router.delete("/:id/comments/:commentId", authMiddleware, async (req, res) => {
   }
 });
 
+// @route   GET api/posts/:id
+// @desc    Get post by id
+// @access  Private
+router.get("/:id", authMiddleware, async (req, res) => {
+  try {
+    // get post from req.params.id
+    const post = await postService.getPostById(req.params.id);
+
+    // check if post exists
+    if (!post) {
+      return res.status(404).json({
+        message: "Post not found",
+      });
+    }
+
+    res.status(200).json(post);
+  } catch (err) {
+    res.status(400).json({
+      message: err.message,
+    });
+  }
+});
+
+// @route   GET api/posts/user/:userId
+// @desc    Get posts user id
+// @access  Private
+router.get("/user/:userId", authMiddleware, async (req, res) => {
+  try {
+    // get posts
+    const posts = await postService.getPostsByUserId(req.params.userId);
+
+    // check if posts exists
+    if (!posts) {
+      return res.status(404).json({
+        message: "Posts not found",
+      });
+    }
+
+    res.status(200).json(posts);
+  } catch (err) {
+    res.status(400).json({
+      message: err.message,
+    });
+  }
+});
+
 // export
 module.exports = router;

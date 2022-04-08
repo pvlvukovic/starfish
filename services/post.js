@@ -154,3 +154,17 @@ exports.deleteComment = async (_id) => {
 
   return comment;
 };
+
+// get post by user
+exports.getPostsByUserId = async (userId) => {
+  // get posts
+  const posts = await Post.find({ user: userId })
+    .populate("user", {
+      username: 1,
+      email: 1,
+      avatar: 1,
+    })
+    .sort({ createdAt: "desc" });
+
+  return posts;
+};
